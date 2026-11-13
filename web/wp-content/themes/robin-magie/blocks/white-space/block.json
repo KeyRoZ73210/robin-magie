@@ -1,0 +1,19 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "acf/white-space",
+  "title": "Espace",
+  "description": "Espace vertical responsive avec chevauchement optionnel.",
+  "category": "forge-blocks",
+  "icon": "image-flip-vertical",
+  "keywords": ["espace", "séparateur"],
+  "acf": {
+    "mode": "preview",
+    "renderTemplate": "render.php"
+  },
+  "supports": {
+    "align": false,
+    "anchor": false,
+    "html": false
+  }
+}

@@ -1,0 +1,2 @@
+
+<div class="white-space <?= esc_attr($classListOverlap . $classListHeight) ?>colored--<?= esc_attr($color) ?>"></div>

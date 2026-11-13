@@ -37,11 +37,9 @@ echo "   2. Crée la base de données sur le panel OVH\n\n";
 echo "Appuie sur [Entrée] quand c'est fait...";
 fgets(STDIN);
 
-require_once __DIR__ . '/setup-1p.php';
 
 require_once __DIR__ . '/setup-wordpress.php';
 
-require_once __DIR__ . '/setup-gitlab.php';
 
 // Le mot de passe admin ne reste pas en clair dans le .env une fois WordPress installé et le mot de passe dans 1Password.
 $envPath = dirname(__DIR__) . '/.env';
