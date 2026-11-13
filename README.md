@@ -121,6 +121,8 @@ composer install
 php scripts/setup.php
 ```
 
+`forge-core` est un dépôt GitHub privé : la machine doit pouvoir y accéder en HTTPS (gestionnaire d'identifiants Git ou jeton GitHub). Si `composer install` échoue avec « Host key verification failed » ou « Could not read from remote repository », lance-le avec `GIT_TERMINAL_PROMPT=1` pour saisir tes identifiants.
+
 ---
 
 # 🚀 CI/CD — Automated Deployment

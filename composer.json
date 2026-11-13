@@ -1,1 +1,15 @@
-{"repositories":[{"type":"path","url":"../forge-core"}],"require":{"vlucas/phpdotenv":"^5.6","thomasfleury/forge-core":"dev-main"},"minimum-stability":"dev","prefer-stable":true}
+{
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/KeyRoZ73210/forge-core.git",
+            "no-api": true
+        }
+    ],
+    "require": {
+        "vlucas/phpdotenv": "^5.6",
+        "thomasfleury/forge-core": "dev-main"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
