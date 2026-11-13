@@ -1,0 +1,1 @@
+{"repositories":[{"type":"path","url":"../forge-core"}],"require":{"vlucas/phpdotenv":"^5.6","thomasfleury/forge-core":"dev-main"},"minimum-stability":"dev","prefer-stable":true}

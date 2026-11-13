@@ -1,0 +1,23 @@
+# Dépendances (réinstallées avec « npm install »)
+node_modules/
+
+# macOS
+.DS_Store
+
+# Secrets : jamais dans Git
+.env
+.env.*
+!.env.example
+
+# Résultats des tests Playwright
+playwright-report/
+test-results/
+
+# Journaux et fichiers d'éditeur
+*.log
+npm-debug.log*
+.idea/
+.vscode/
+
+# Fichiers mis de côté par Claude, à supprimer à la main
+_to_delete/

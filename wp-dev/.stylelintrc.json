@@ -1,0 +1,28 @@
+{
+  "customSyntax": "postcss-sass",
+  "rules": {
+    "block-no-empty": true,
+    "color-no-invalid-hex": true,
+    "declaration-block-no-duplicate-properties": [
+      true,
+      {
+        "ignore": [
+          "consecutive-duplicates-with-different-values"
+        ]
+      }
+    ],
+    "function-calc-no-unspaced-operator": true,
+    "unit-no-unknown": true,
+    "property-no-unknown": [
+      true,
+      {
+        "ignoreProperties": [
+          "/^\\$/"
+        ]
+      }
+    ]
+  },
+  "ignoreFiles": [
+    "src/blocks/white-space/style.sass"
+  ]
+}

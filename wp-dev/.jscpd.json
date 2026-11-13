@@ -1,0 +1,9 @@
+{
+  "path": ["src/blocks", "src/assets/js", "src/wordpress"],
+  "format": ["javascript", "php"],
+  "minLines": 12,
+  "minTokens": 100,
+  "threshold": 5,
+  "reporters": ["console"],
+  "gitignore": true
+}

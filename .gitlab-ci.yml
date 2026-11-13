@@ -1,0 +1,139 @@
+# # CI/CD Pipeline — Forge
+# # -------------------------------------------------------
+# # Variables à configurer dans GitLab → Settings → CI/CD → Variables :
+# #
+# # SSH_PRIVATE_KEY  → Clé privée SSH encodée en base64
+# # SSH_HOST         → Hostname du serveur (ex: xxxxx.ftp.infomaniak.com)
+# # SSH_USER         → Utilisateur SSH
+# # THEME_NAME       → Nom du thème WordPress (ex: mon-projet)
+# #
+# # Variables injectées dans le bloc géré "# BEGIN ENV / # END ENV" du .htaccess serveur :
+# # WP_ENVIRONMENT_TYPE, WP_DB_PREFIXE, WP_DB_NAME, WP_DB_USER, WP_DB_PASSWORD, WP_DB_HOST,
+# # WP_AUTH_KEY_B64U, WP_SECURE_AUTH_KEY_B64U, WP_LOGGED_IN_KEY_B64U, WP_NONCE_KEY_B64U,
+# # WP_AUTH_SALT_B64U, WP_SECURE_AUTH_SALT_B64U, WP_LOGGED_IN_SALT_B64U, WP_NONCE_SALT_B64U
+# # -------------------------------------------------------
+
+# stages:
+#   - build
+#   - deploy
+
+# # Étape de build : compile les assets du thème et les prépare pour le déploiement
+# build:
+#   stage: build
+#   image: node:20-alpine
+#   before_script:
+#     - cd wp-dev
+#     - npm install
+#   script:
+#     - npm run build
+#   artifacts:
+#     paths:
+#       - web/wp-content/themes/
+#     expire_in: 1 hour
+#   only:
+#     - main
+
+# # Étape de déploiement : utilise rsync pour transférer les fichiers du thème compilé vers le serveur, puis exécute composer install pour installer les dépendances PHP
+# deploy:
+#   stage: deploy
+#   image: alpine:latest
+#   before_script:
+#     - apk add --no-cache openssh rsync
+#     - eval $(ssh-agent -s)
+#     - echo "$SSH_PRIVATE_KEY" | base64 -d | tr -d '\r' | ssh-add -
+#     - mkdir -p ~/.ssh
+#     - chmod 700 ~/.ssh
+#     - ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts
+#     - chmod 644 ~/.ssh/known_hosts
+#   script:
+#     - ssh $SSH_USER@$SSH_HOST "[ ! -d ~/sites/$THEME_NAME ] && mkdir -p ~/sites/$THEME_NAME && echo '📁 Dossier créé' || echo '✅ Dossier existant'"
+#     - |
+#       rsync -avz --delete \
+#         --exclude='wp-dev/' \
+#         --exclude='.git/' \
+#         --exclude='.env' \
+#         --exclude='.htaccess' \
+#         --exclude='/vendor/' \
+#         --exclude='scripts/' \
+#         --exclude='web/wp-content/uploads/' \
+#         --exclude='web/wp-content/uploads-webpc/' \
+#         --exclude='web/wp-content/plugins/' \
+#         ./ \
+#         $SSH_USER@$SSH_HOST:~/sites/$THEME_NAME/
+#     - |
+#       # Pas de --delete sur ces dossiers : ils peuvent contenir des fichiers créés
+#       # côté serveur (médias uploadés, plugins activés/mis à jour en prod) qui ne
+#       # sont pas versionnés dans le dépôt. --delete les effacerait à chaque déploiement.
+#       rsync -avz \
+#         web/wp-content/uploads/ \
+#         $SSH_USER@$SSH_HOST:~/sites/$THEME_NAME/web/wp-content/uploads/
+#       rsync -avz \
+#         web/wp-content/uploads-webpc/ \
+#         $SSH_USER@$SSH_HOST:~/sites/$THEME_NAME/web/wp-content/uploads-webpc/
+#       rsync -avz \
+#         web/wp-content/plugins/ \
+#         $SSH_USER@$SSH_HOST:~/sites/$THEME_NAME/web/wp-content/plugins/
+#     - ssh $SSH_USER@$SSH_HOST "cd ~/sites/$THEME_NAME && composer install --no-dev"
+#     - |
+#       ENV_BLOCK=$(printf '%s\n' \
+#         "# BEGIN ENV" \
+#         "SetEnv WP_ENVIRONMENT_TYPE \"$WP_ENVIRONMENT_TYPE\"" \
+#         "SetEnv WP_DB_PREFIXE \"$WP_DB_PREFIXE\"" \
+#         "SetEnv WP_DB_NAME \"$WP_DB_NAME\"" \
+#         "SetEnv WP_DB_USER \"$WP_DB_USER\"" \
+#         "SetEnv WP_DB_PASSWORD \"$WP_DB_PASSWORD\"" \
+#         "SetEnv WP_DB_HOST \"$WP_DB_HOST\"" \
+#         "SetEnv WP_AUTH_KEY_B64U \"$WP_AUTH_KEY_B64U\"" \
+#         "SetEnv WP_SECURE_AUTH_KEY_B64U \"$WP_SECURE_AUTH_KEY_B64U\"" \
+#         "SetEnv WP_LOGGED_IN_KEY_B64U \"$WP_LOGGED_IN_KEY_B64U\"" \
+#         "SetEnv WP_NONCE_KEY_B64U \"$WP_NONCE_KEY_B64U\"" \
+#         "SetEnv WP_AUTH_SALT_B64U \"$WP_AUTH_SALT_B64U\"" \
+#         "SetEnv WP_SECURE_AUTH_SALT_B64U \"$WP_SECURE_AUTH_SALT_B64U\"" \
+#         "SetEnv WP_LOGGED_IN_SALT_B64U \"$WP_LOGGED_IN_SALT_B64U\"" \
+#         "SetEnv WP_NONCE_SALT_B64U \"$WP_NONCE_SALT_B64U\"" \
+#         "# END ENV")
+#       echo "$ENV_BLOCK" | base64 | tr -d '\n' > env_block.b64
+#       scp env_block.b64 $SSH_USER@$SSH_HOST:/tmp/env_block.b64
+#       ssh $SSH_USER@$SSH_HOST "
+#         set -e
+#         HTACCESS=~/sites/$THEME_NAME/web/.htaccess
+#         touch \"\$HTACCESS\"
+#         base64 -d /tmp/env_block.b64 > /tmp/env_block.txt
+#         awk '/^# BEGIN ENV/,/^# END ENV/{next}{print}' \"\$HTACCESS\" > /tmp/htaccess_clean
+#         cat /tmp/env_block.txt /tmp/htaccess_clean > \"\$HTACCESS\"
+#         rm -f /tmp/env_block.txt /tmp/env_block.b64 /tmp/htaccess_clean
+#       "
+#       rm -f env_block.b64
+#     - |
+#       WP_BLOCK=$(printf '%s\n' \
+#         "# BEGIN WordPress" \
+#         "# Les directives (lignes) entre « BEGIN WordPress » et « END WordPress » sont générées" \
+#         "# dynamiquement, et doivent être modifiées uniquement via les filtres WordPress." \
+#         "# Toute modification des directives situées entre ces marqueurs sera surchargée." \
+#         "<IfModule mod_rewrite.c>" \
+#         "RewriteEngine On" \
+#         "RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]" \
+#         "RewriteBase /" \
+#         "RewriteRule ^index\.php\$ - [L]" \
+#         "RewriteCond %{REQUEST_FILENAME} !-f" \
+#         "RewriteCond %{REQUEST_FILENAME} !-d" \
+#         "RewriteRule . /index.php [L]" \
+#         "</IfModule>" \
+#         "" \
+#         "# END WordPress")
+#       echo "$WP_BLOCK" | base64 | tr -d '\n' > wp_block.b64
+#       scp wp_block.b64 $SSH_USER@$SSH_HOST:/tmp/wp_block.b64
+#       ssh $SSH_USER@$SSH_HOST "
+#         set -e
+#         HTACCESS=~/sites/$THEME_NAME/web/.htaccess
+#         if ! grep -q '^# BEGIN WordPress' \"\$HTACCESS\" 2>/dev/null; then
+#           base64 -d /tmp/wp_block.b64 >> \"\$HTACCESS\"
+#           echo '✅ Bloc WordPress ajouté'
+#         else
+#           echo '✅ Bloc WordPress déjà présent, inchangé'
+#         fi
+#         rm -f /tmp/wp_block.b64
+#       "
+#       rm -f wp_block.b64
+#   only:
+#     - main

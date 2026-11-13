@@ -1,0 +1,1 @@
+export const pages = ['/'] // Add more page paths as needed

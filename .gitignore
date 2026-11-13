@@ -1,0 +1,24 @@
+# Composer
+/vendor/
+composer.lock
+
+# Env
+.env
+.env.local
+.env.production
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# WP-Dev
+wp-dev/node_modules/
+wp-dev/dist/
+wp-dev/*.map
+
+# Tests Playwright
+wp-dev/playwright-report/
+wp-dev/test-results/
