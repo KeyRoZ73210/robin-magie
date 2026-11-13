@@ -114,7 +114,7 @@ brew install wp-cli glab mysql-client
 # 📥 Install the Boilerplate
 
 ```bash
-composer create-project \
+composer create-project --prefer-source \
   --repository='{"type":"vcs","url":"https://github.com/KeyRoZ73210/Forge.git","no-api":true}' \
   thomasfleury/forge mon-projet dev-main
 
@@ -122,13 +122,9 @@ cd mon-projet
 php scripts/setup.php
 ```
 
-Le dépôt `Forge` et le dépôt `forge-core` sont privés : la machine doit pouvoir y accéder en HTTPS (gestionnaire d'identifiants Git ou jeton GitHub). Si Composer répond « Could not read from remote repository », vérifie ces accès.
+Les dépôts `Forge` et `forge-core` sont privés : la machine doit pouvoir y accéder en HTTPS (gestionnaire d'identifiants Git ou jeton GitHub). `--prefer-source` fait cloner les dépôts par Git, au lieu de télécharger une archive par l'API GitHub (qui répond 404 sans jeton).
 
-> **PHP 8.5 (Homebrew) :** Composer plante (SIGSEGV) avec PHP 8.5.1. Lance-le avec le PHP de MAMP :
->
-> ```bash
-> /Applications/MAMP/bin/php/--php8.3.14/bin/php $(which composer) create-project …
-> ```
+> **PHP 8.5.1 :** Composer plante (SIGSEGV) avec cette version précise. Corrigé dans PHP 8.5.12 (`brew upgrade php`).
 
 ---
 
