@@ -1,4 +1,8 @@
 {
+    "name": "thomasfleury/forge",
+    "description": "Forge : boilerplate WordPress (thème de base, blocs natifs, build Gulp)",
+    "type": "project",
+    "license": "ISC",
     "repositories": [
         {
             "type": "vcs",
